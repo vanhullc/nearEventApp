@@ -1,4 +1,9 @@
 {
   "name": "NewEventBoiler",
-  "displayName": "NewEventBoiler"
+  "displayName": "NewEventBoiler",
+  "expo": {
+    "name": "NewEventBoiler",
+    "slug": "new-event-boiler",
+    "sdkVersion": "28.0.0"
+  }
 }

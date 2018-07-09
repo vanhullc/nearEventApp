@@ -76,4 +76,10 @@ export default StyleSheet.create({
     flex: 1,
     width: '90%'
   },
+  splash: {
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    backgroundColor: 'black'
+  }
 })

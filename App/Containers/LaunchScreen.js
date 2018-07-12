@@ -1,8 +1,10 @@
 import React, { Component } from 'react'
-import { ScrollView, Text, Image, View, FlatList, Button, Modal, TouchableHighlight, TextInput } from 'react-native'
+import { ScrollView, Text, Image, View, FlatList, Button, Modal, TouchableHighlight, TextInput, TouchableCustom } from 'react-native'
 import { Images } from '../Themes'
 import { FullButton } from '../Components/FullButton'
 import { showLocation } from 'react-native-map-link'
+import { LinearGradient } from 'expo';
+import { Font } from 'expo';
 
 // Icons
 // Use prebuilt version of RNVI in dist folder
@@ -106,6 +108,7 @@ export default class LaunchScreen extends Component {
 
   constructor(props) {
     super();
+    console.disableYellowBox = true;
   }
 
   componentDidMount() {
@@ -122,9 +125,10 @@ export default class LaunchScreen extends Component {
   render () {
     return (
       <View style={styles.container}> 
-        <View style={styles.navbar}>
-          <Text>Working page</Text>       
-        </View>
+        <LinearGradient start={[0.1, 0.1]} end={[2, 1.5]} colors={['#f5740d', '#B3550A']}
+              style={styles.navbar}>
+          <Text style={{color: '#f7f1ed'}}>Working page</Text>    
+        </LinearGradient>   
         <View style={styles.grid}>
           <FlatList
             style={styles.sectionList}
@@ -135,8 +139,9 @@ export default class LaunchScreen extends Component {
           />
         </View>
         <View style={styles.footer}>
-          <Button style={styles.button} title={this.actionTitle()} onPress={() => {this.setModalVisible(!this.state.modalVisible);}}>
-          </Button>
+          <TouchableHighlight style={styles.button} onPress={() => {this.setModalVisible(!this.state.modalVisible);}}>
+            <Text style={{color: '#f7f1ed', fontSize: 40}}>+</Text>
+          </TouchableHighlight>
         </View>
         <Modal 
           animationType="slide"
@@ -232,10 +237,17 @@ export default class LaunchScreen extends Component {
           animationType="fade"
           transparent={false}
           visible={this.state.splashscreen}
-          onRequestClose={() => {
-            alert('modal has been closed');
-          }}>
+          onPress={() => {this.setState({splashscreen: false})}}>
             <View style={styles.splash}>
+              <LinearGradient start={[0.1, 0.1]} end={[2, 1.5]} colors={['#f5740d', '#f7f1ed']}
+              style={{ padding: 15, alignItems: 'center', borderRadius: 5, flex: 1 }}>
+          <View
+            style={{
+              flex: 1
+            }}>
+            <Text style={styles.splashTitle}>"Ouvre toi à la muse, et la muse s'ouvrira à toi"</Text>
+          </View>
+        </LinearGradient>
             </View>
         </Modal>
       </View>
@@ -248,10 +260,26 @@ export default class LaunchScreen extends Component {
 
   renderItem = ({item}) => {
     return (
-      <Text style={styles.row} onPress={() => {this.setEventDetailsVisible(!this.state.eventDetailsVisible);
+      <TouchableHighlight style={styles.card} onPress={() => {this.setEventDetailsVisible(!this.state.eventDetailsVisible);
       this.setEventDetail(item);console.log(item);}}>
-        {item.name}
-      </Text>
+        <View style={{flex: 1, flexDirection: 'row'}}>
+          <View style={styles.itemphoto}>
+            <Image style={{width: 40, height: 40, borderRadius: 40}} source={{uri: 'https://cdn.patchcdn.com/assets/layout/contribute/user-default.png'}}>
+          </Image>
+          </View>
+          <View style={styles.itemText}>
+            <View style={{flex: 1}}>
+              <Text>{item.name}</Text>
+            </View>
+            <View style={{flex: 1}}>
+              <Text>-- km</Text>
+            </View>
+          </View>
+          <View style={styles.itemType}>
+            <Text>Type: {item.type}</Text>
+          </View>
+        </View>
+      </TouchableHighlight>
     )
   }
   

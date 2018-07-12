@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "apisauce": "^0.14.2",
+    "cssta": "github:jacobp100/cssta",
     "expo": "^28.0.0",
     "fontawesome": "^4.7.2",
     "format-json": "^1.0.3",
@@ -48,6 +49,7 @@
     "@storybook/react-native": "^3.4.0",
     "babel-core": "6.26.0",
     "babel-jest": "23.2.0",
+    "babel-plugin-cssta": "^0.8.0",
     "babel-plugin-ignite-ignore-reactotron": "^0.3.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react-native": "^3.0.2",
@@ -79,6 +81,11 @@
       "<rootDir>/Tests/Setup"
     ],
     "preset": "react-native"
+  },
+  "rnpm": {
+    "assets": [
+      "./App/font"
+    ]
   },
   "config": {}
 }

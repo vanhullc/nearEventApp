@@ -1,5 +1,10 @@
 import { StyleSheet } from 'react-native'
-import { Metrics, ApplicationStyles } from '../../Themes/'
+import { Metrics, ApplicationStyles, Colors } from '../../Themes/'
+import { Font } from 'expo';
+
+Font.loadAsync({
+  'scripalt': require('../../font/SCRIPALT.ttf'),
+});
 
 export default StyleSheet.create({
   ...ApplicationStyles.screen,
@@ -7,6 +12,9 @@ export default StyleSheet.create({
     flex: 1,
     paddingTop: 22,
     backgroundColor: 'black',
+		// linearGradient: '(90deg, #f7f1ed (22px - 2px), transparent 1%) center',
+		// linearGradient: '(#f7f1ed (22px - 2px), transparent 1%) center, #f5740d',
+	  // backgroundSize: '22px 22px'
   },
   logo: { 
     marginTop: Metrics.doubleSection,
@@ -20,26 +28,41 @@ export default StyleSheet.create({
   navbar: {
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
-    backgroundColor: 'red',
+    flex: 1.5,
+    backgroundColor: '#f5740d',
   },
   grid: {
     flexDirection: 'column',
     flex: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'blue',
+    backgroundColor: '#f7f1ed',
+  },
+  card: {
+    padding: 15,
+    flex: 1,
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderRadius: 2,
+    borderColor: '#ddd',
+    shadowColor: 'rgba(0,0,0,0.15)',
+    shadowOffset: { width: 16, height: 16 },
   },
   button: {
-    flex: 1,
-    padding: 20,
+    height: '100%',
+    width: '100%',
+    backgroundColor: '#f5740d',
+    borderWidth: 1,
+    borderTopWidth: 1,
+    borderRadius: 10,
+    borderColor: '#a08772',
     justifyContent: 'center',
     alignItems: 'center',
   },
   sectionList: {
-    marginTop: 20,
     flex: 1,
-    width: '90%'
+    width: '100%'
   },
   row: {
     padding: 15,
@@ -56,8 +79,12 @@ export default StyleSheet.create({
     fontWeight: 'bold',
   },
   footer: {
-    flex: 2,
-    backgroundColor: 'green',
+    position: 'absolute',
+    width: '20%',
+    height: '10%',
+    bottom: 0,
+    left: '40%',
+    backgroundColor: '#f7f1ed',
   },
   closeNavbar: {
     position: 'absolute',
@@ -81,5 +108,31 @@ export default StyleSheet.create({
     width: '100%',
     position: 'absolute',
     backgroundColor: 'black'
+  },
+  splashTitle: {
+    top: '45%',
+    alignItems: 'center',
+    textAlign: 'center',
+    padding: .25,    
+    fontWeight: '600',
+    fontSize: 30,
+    color: 'white',
+    fontFamily: 'scripalt',
+    position: 'relative',
+    // lineHeight: 1.3
+  },
+  itemphoto: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  itemText: {
+    flex: 3,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  itemType: {
+    flex: 2,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
   }
 })

@@ -1,19 +1,16 @@
 import React, { Component } from 'react'
-import { ScrollView, Text, Image, View, FlatList, Button, Modal, TouchableHighlight, TextInput, TouchableCustom } from 'react-native'
+import { ScrollView, Text, Image, View, FlatList, Button, Modal, TouchableHighlight, TextInput, TouchableCustom, Picker } from 'react-native'
 import { Images } from '../Themes'
 import { FullButton } from '../Components/FullButton'
 import { showLocation } from 'react-native-map-link'
 import { LinearGradient } from 'expo';
 import { Font } from 'expo';
-
-// Icons
-// Use prebuilt version of RNVI in dist folder
-import Icon from 'react-native-vector-icons/dist/FontAwesome';
+import { Ionicons } from '@expo/vector-icons';
 
 // Styles
 import styles from './Styles/LaunchScreenStyles'
 
-const extractKey = ({item}) => item.key
+const extractKey = ({item}) => item.key.toString()
 
 const test = [{
   id: 0,
@@ -31,7 +28,9 @@ const test = [{
     {id: 3, text: 'ScrollView'},
     {id: 4, text: 'ListView'},
   ]
-}]
+}];
+
+const apiUrl = 'http://nearevent.mymine.ovh/api/'
 
 export default class LaunchScreen extends Component {
 
@@ -47,15 +46,19 @@ export default class LaunchScreen extends Component {
     modalVisible: false,
     eventDetailsVisible: false,
     events: [
-      {key: 1, location: {lat: 43.5416911, lng: 1.489664}, type: [1, 3], name: "Pizzeria Di Parma"},
+      /*{key: 1, location: {lat: 43.5416911, lng: 1.489664}, type: [1, 3], name: "Pizzeria Di Parma"},
       {key: 2, location: {lat: 43.5440261, lng: 1.4791632}, type: [0, 3], name: "Chez Michel"},
-      {key: 3, location: {lat: 43.540439, lng: 1.4797479}, type: [3], name: "Pizza Nico"},
+      {key: 3, location: {lat: 43.540439, lng: 1.4797479}, type: [3], name: "Pizza Nico"},*/
     ],
+    range: 20,
     eventDetail: {},
     inputName: '',
     inputDesc: '',
     inputType: [],
     splashscreen: false,
+    latitude: null,
+    longitude: null,
+    error: null,
   };
 
   setModalVisible(visible) {
@@ -67,6 +70,7 @@ export default class LaunchScreen extends Component {
   }
 
   setEvents(events) {
+    this.setState({events: []});
     this.setState({events: events});
   }
 
@@ -75,17 +79,10 @@ export default class LaunchScreen extends Component {
   }
 
   addEvent() {
-    var lat = 0;
-    var lng = 0;
-    navigator.geolocation.getCurrentPosition(
-      (loc) => {
-        lng = loc.coords.longitude;
-        lat = loc.coords.latitude;
-        const newEvents = this.state.events;
-        newEvents.push({key: 4, location: {lat: lat, lng: lng}, type: this.state.inputType, name: this.state.inputName, description: this.state.inputDesc});
-        this.setState({events: newEvents});
-      }
-    )
+    console.log('adding event ....');
+    var lat = this.state.latitude;
+    var lng = this.state.longitude;
+    this.postEvent({location: {lat: lat, lng: lng}, type: this.state.inputType, name: this.state.inputName, description: this.state.inputDesc})
   }
 
   toggleType(number) {
@@ -118,6 +115,27 @@ export default class LaunchScreen extends Component {
       () => {
         this.setState({splashscreen: false});
         console.log('no splash');
+        this.getEvents().then(
+          (results) => {
+            console.log('waiting results: ' + results);
+            this.convertEvents(results);
+          }
+        ).catch(
+          (error) => {
+            console.log('error while waiting results:' + error);
+          }
+        );
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            this.setState({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              error: null,
+            });
+          },
+          (error) => this.setState({ error: error.message }),
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
+        );
       }, 2500
     );
   }
@@ -127,8 +145,9 @@ export default class LaunchScreen extends Component {
       <View style={styles.container}> 
         <LinearGradient start={[0.1, 0.1]} end={[2, 1.5]} colors={['#f5740d', '#B3550A']}
               style={styles.navbar}>
-          <Text style={{color: '#f7f1ed'}}>Working page</Text>    
-        </LinearGradient>   
+          <Text style={{color: '#f7f1ed', textAlign: 'center'}}>NOW @{this.state.range} km</Text>
+          <Image style={{width: 25, height: 25, borderRadius: 40, position: 'absolute', top: 15, right: 10}} source={{uri: 'http://www.clker.com/cliparts/T/Y/8/C/N/L/gear-icon-hi.png'}}></Image>
+        </LinearGradient>
         <View style={styles.grid}>
           <FlatList
             style={styles.sectionList}
@@ -147,9 +166,6 @@ export default class LaunchScreen extends Component {
           animationType="slide"
           transparent={false}
           visible={this.state.modalVisible}
-          onRequestClose={() => {
-            alert('modal has been closed');
-          }}
         >
           <View style={styles.navbar}>
             <Text>Add Event</Text>
@@ -160,12 +176,18 @@ export default class LaunchScreen extends Component {
           <View style={styles.grid}>
             <View style={styles.sectionList}>
               <View>
-                <Button title="Music" onPress={() => this.toggleType(1)}></Button>
-                <Button title="Party" onPress={() => this.toggleType(2)}></Button>
-                <Button title="Sport" onPress={() => this.toggleType(3)}></Button>
-                <Button title="Game" onPress={() => this.toggleType(4)}></Button>
-                <Button title="Meeting" onPress={() => this.toggleType(5)}></Button>
-                <Button title="Help" onPress={() => this.toggleType(6)}></Button>
+              <Picker
+                selectedValue={this.state.inputType}
+                style={{ height: 50, width: 100 }}
+                onValueChange={(itemValue) => this.setState({inputType: itemValue})}>
+                <Picker.Item label="Music" value="1" />
+                <Picker.Item label="Party" value="2" />
+                <Picker.Item label="Sport" value="3" />
+                <Picker.Item label="Game" value="4" />
+                <Picker.Item label="Meeting" value="5" />
+                <Picker.Item label="Help" value="6" />
+
+              </Picker>
               </View>
               <View>
                 <Text style={{padding: 10, fontSize: 12}}>
@@ -185,11 +207,6 @@ export default class LaunchScreen extends Component {
                   onChangeText={(text) => this.setState({inputDesc: text})}
                 />
               </View>
-              <View>
-                <Text style={{padding: 10, fontSize: 12}}>
-                  Add a picture
-                </Text>
-              </View>
             </View>
           </View>
           <View style={styles.footer}>
@@ -201,9 +218,6 @@ export default class LaunchScreen extends Component {
           animationType="slide"
           transparent={false}
           visible={this.state.eventDetailsVisible}
-          onRequestClose={() => {
-            alert('modal has been closed');
-          }}
         >
           <View style={styles.navbar}>
             <Text style={styles.titleNavbar}>eventDetailsVisible</Text>
@@ -222,8 +236,8 @@ export default class LaunchScreen extends Component {
           <View style={styles.footer}>
             <Button style={styles.button} title={this.actionTitle()} onPress={() => {
               showLocation({
-                latitude: this.state.eventDetail.location.lat,
-                longitude: this.state.eventDetail.location.lng,
+                latitude: this.state.eventDetail.location.latitude,
+                longitude: this.state.eventDetail.location.longitude,
                 title: this.state.eventDetail.name,  // optional
                 googleForceLatLon: true,  // optionally force GoogleMaps to use the latlon for the query instead of the title
                 appsWhiteList: ['google-maps', 'apple-maps'] // optionally you can set which apps to show (default: will show all supported apps installed on device)
@@ -233,7 +247,7 @@ export default class LaunchScreen extends Component {
             </Button>
           </View>
         </Modal>
-        <Modal 
+        <Modal
           animationType="fade"
           transparent={false}
           visible={this.state.splashscreen}
@@ -260,8 +274,17 @@ export default class LaunchScreen extends Component {
 
   renderItem = ({item}) => {
     return (
-      <TouchableHighlight style={styles.card} onPress={() => {this.setEventDetailsVisible(!this.state.eventDetailsVisible);
-      this.setEventDetail(item);console.log(item);}}>
+      <TouchableHighlight style={styles.card} onPress={() => {
+        // this.setEventDetailsVisible(!this.state.eventDetailsVisible);
+      // this.setEventDetail(item);console.log(item);
+      showLocation({
+        latitude: item.location.latitude,
+        longitude: item.location.longitude,
+        title: item.name,  // optional
+        googleForceLatLon: true,  // optionally force GoogleMaps to use the latlon for the query instead of the title
+        appsWhiteList: ['google-maps', 'apple-maps'] // optionally you can set which apps to show (default: will show all supported apps installed on device)
+        // app: 'uber'  // optionally specify specific app to use
+    })}}>
         <View style={{flex: 1, flexDirection: 'row'}}>
           <View style={styles.itemphoto}>
             <Image style={{width: 40, height: 40, borderRadius: 40}} source={{uri: 'https://cdn.patchcdn.com/assets/layout/contribute/user-default.png'}}>
@@ -269,7 +292,7 @@ export default class LaunchScreen extends Component {
           </View>
           <View style={styles.itemText}>
             <View style={{flex: 1}}>
-              <Text>{item.name}</Text>
+              <Text>{item.name}</Text><Text>{item.description}</Text>
             </View>
             <View style={{flex: 1}}>
               <Text>-- km</Text>
@@ -301,23 +324,100 @@ export default class LaunchScreen extends Component {
        });
   }
 
-  getEvents(location, range){
-    // Assemble data
-    const event = {location: location, range: range}
-    // Update data
-    axios.post(this.apiUrl, event)
-       .then((res) => {
-          console.log(res);
-       });
+  async getEvents() {
+    console.log('fetching api events ...');
+    return fetch('http://nearevent.mymine.ovh/api/event/all')
+      .then((response) => response.json())
+      .then((responseJson) => {
+          console.log(responseJson);
+          return responseJson;
+      })
+      .catch((error) => {
+          console.error(error);
+      });
   }
 
-  postEvent(location, type, name, description){
-    // Assemble data
-    const event = {location: location, type: type, name: name, description: description}
-    // Update data
-    axios.post(this.apiUrl, event)
-       .then((res) => {
-          console.log(res);
-       });
+  async postEvent(event) {
+    console.log('posting new event ....');
+    console.log(event);
+    return fetch('http://nearevent.mymine.ovh/api/event/new', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        latitude: event.location.lat,
+        longitude: event.location.lng,
+        name: event.name,
+        description: event.description,
+        type: event.type,
+      }),
+    })
+    .then((response) => response.json())
+      .then((responseJson) => {
+        if (!responseJson.newFailed) {
+          console.log('Post success !')
+          console.log(responseJson);
+          this.getEvents().then(
+            (results) => {
+              console.log('waiting results: ' + results);
+              this.convertEvents(results);
+            }
+          ).catch(
+            (error) => {
+              console.log('error while waiting results:' + error);
+            }
+          );
+          return responseJson;
+        } else {
+          console.log('Post failed !')
+          console.log(responseJson.toString());
+        }
+      })
+      .catch((error) => {
+          console.error(error);
+      });
+  }
+
+  convertEvents(eventsJson) {
+    console.log('converting API results ....');
+    console.log(eventsJson);
+    console.log(this.state);
+    const eventsDuplicate = eventsJson;
+    for (const event of eventsDuplicate) {
+      event.key = event.id;
+      if (!event.type) {
+        event.type = 'null';
+      } else {
+        switch (event.type) {
+          case '1': 
+            event.type = 'music';break;
+          case '2': 
+            event.type = 'party';break;
+          case '3': 
+            event.type = 'sport';break;
+          case '4': 
+            event.type = 'game';break;
+          case '5': 
+            event.type = 'meeting';break;
+          case '6': 
+            event.type = 'help';break;
+          default: 
+            event.type = 'null';break;
+        }
+      }
+    }
+    console.log(eventsDuplicate);
+    this.setEvents(eventsDuplicate);
   }
 }
+
+/*
+<Button title="Music" color={this.getColorButton(1)} onPress={() => this.toggleType(1)}></Button>
+<Button title="Party" color={this.getColorButton(2)} onPress={() => this.toggleType(2)}></Button>
+<Button title="Sport" color={this.getColorButton(3)} onPress={() => this.toggleType(3)}></Button>
+<Button title="Game" color={this.getColorButton(4)} onPress={() => this.toggleType(4)}></Button>
+<Button title="Meeting" color={this.getColorButton(5)} onPress={() => this.toggleType(5)}></Button>
+<Button title="Help" color={this.getColorButton(6)} onPress={() => this.toggleType(6)}></Button>
+*/
